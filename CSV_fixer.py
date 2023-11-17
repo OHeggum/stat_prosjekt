@@ -3,48 +3,46 @@ import csv
 
 df = pd.read_csv('lego.population.csv', encoding='latin1')
 
-columns_to_keep = ['Item_Number', 'Set_Name', 'Theme', 'Pieces', 'Price', 'Amazon_Price']
+columns_to_keep = ['Item_Number', 'Set_Name', 'Theme', 'Pieces', 'Price']
 df = df[columns_to_keep]
 
-df = df.dropna(subset=['Pieces'])
-
-# Hvilken av disse to du kjører utgjør om du har med de to radene eller ikke.
-#df = df.dropna(subset=['Price'])
-#df = df.dropna(subset=['Price', 'Amazon_Price'], how='all')
+df = df.dropna()
 
 df['Theme'] = df['Theme'].astype(str)
 df['Theme'] = df['Theme'].str.replace(r'[^a-zA-Z0-9\s-]', '', regex = True)
 df['Price'] = df['Price'].str.replace('\\$', '', regex = True)
-#df['Amazon_Price'] = df['Amazon_Price'].str.replace('\\$', '', regex = True)
 
 df['Price'] = df['Price'].astype(float)
-#df['Amazon_Price'] = df['Amazon_Price'].astype(float)
 
 
-df.to_csv('datasett_filtrert.csv', index=False)
+themes = ['Disney', 'Star Wars', 'Minecraft', 'Marvel', 'Batman',
+            'LEGO Frozen 2','LEGO Super Mario', 'Harry Potter',
+            'Trolls World Tour','Minions', 'Powerpuff Girls',
+            'Jurassic World', 'Overwatch', 'Spider-Man', 'DC', 'Stranger Things']
 
+unknown_theme = ['Speed Champions', 'BrickHeadz', 'Juniors', 'Architecture', 'Ideas',
+                 'Creator Expert', 'LEGO Art', 'Minifigures', 'LEGO Brick Sketches']
 
-csv_file = 'datasett_filtrert.csv'
+with open("datasett_filtrert.csv", 'r') as file:
+    reader = csv.reader(file)
+    data = list(reader)
+    header = data[0]
 
-varemerker = []
-theme_count = -1
-no_theme_count = 0
+header.append('Theme_or_not')
 
-# Henter ut antall temaer, antall rader med og uten tema og printer rader med pris som 0.
-with open(csv_file, 'r') as file:
-    csv_reader = csv.reader(file)
+target_column_name = "Theme"
 
-    for row in csv_reader:
-        if row[2] != "nan" and row[2] not in varemerker:
-            varemerker.append(row[2])
-        elif row[2] != "nan":
-            theme_count += 1
-        else:
-            no_theme_count += 1
-        if row[3] == 0:
-            print(row)
+target_column_index = header.index(target_column_name)
 
-varemerker.pop(0)
-print (varemerker)
-print ("has theme: " + str(theme_count))
-print ("no theme: " + str(no_theme_count))
+for row in data[1:]:
+    item = row[target_column_index]
+    if item in themes:
+        value = "Yes"
+    elif item in unknown_theme:
+        value = "Unknown"
+    else:
+        value = "No"
+    row.append(value)
+with open("datasett_filtrert.csv", 'w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerows(data)
